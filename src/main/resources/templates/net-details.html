@@ -24,7 +24,9 @@
             <p class="card-text">
                 <strong>Status:</strong>
                 <span class="badge"
-                      th:classappend="${net.status.name() == 'GEMELDET'} ? 'bg-danger' : (${net.status.name() == 'BERGUNG_BEVORSTEHEND'} ? 'bg-warning text-dark' : 'bg-success')"
+                      th:classappend="${net.status.name() == 'GEMELDET'} ? 'bg-danger' :
+                                     (${net.status.name() == 'BERGUNG_BEVORSTEHEND'} ? 'bg-warning text-dark' :
+                                     (${net.status.name() == 'GEBORGEN'} ? 'bg-success' : 'bg-secondary'))"
                       th:text="${net.status.name().replace('_', ' ')}">
                 </span>
             </p>
@@ -39,7 +41,7 @@
         </div>
     </div>
 
-    <div th:if="${net.status.name() == 'GEMELDET'}">
+    <div class="mt-4" th:if="${net.status.name() == 'GEMELDET'}">
         <h4>Bergung beauftragen</h4>
         <p>Sie möchten dieses Netz bergen? Tragen Sie hier Ihre Daten ein, um die Bergung zu übernehmen.</p>
         <form th:action="@{/net/assign/{id}(id=${net.id})}" method="post" th:object="${salvager}">
@@ -55,7 +57,7 @@
         </form>
     </div>
 
-    <div th:if="${net.status.name() == 'BERGUNG_BEVORSTEHEND'}">
+    <div class="mt-4" th:if="${net.status.name() == 'BERGUNG_BEVORSTEHEND'}">
         <h4>Information zur Bergung</h4>
         <div class="alert alert-info">
             <p class="mb-1"><strong>Bergung wird durchgeführt von:</strong> <span th:text="${net.salvagingPerson.name}"></span></p>
@@ -67,12 +69,42 @@
         </form>
     </div>
 
-    <div th:if="${net.status.name() == 'GEBORGEN'}">
+    <div class="mt-4" th:if="${net.status.name() == 'GEBORGEN'}">
         <div class="alert alert-success" role="alert">
             <h4 class="alert-heading">Erfolgreich geborgen!</h4>
             <p>Dieses Netz wurde bereits aus dem Wasser entfernt. Vielen Dank für die Hilfe!</p>
         </div>
     </div>
+
+    <div class="mt-4" th:if="${net.status.name() == 'VERSCHOLLEN'}">
+        <div class="alert alert-secondary" role="alert">
+            <h4 class="alert-heading">Netz als verschollen gemeldet</h4>
+            <p>Dieses Netz konnte am angegebenen Standort nicht gefunden werden.</p>
+            <hr>
+            <p class="mb-0 small text-muted" th:if="${net.salvagingPerson != null}">
+                Meldung von: <span th:text="${net.salvagingPerson.name} + ' (' + ${net.salvagingPerson.phone} + ')'"></span>
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-4 card" th:if="${net.status.name() == 'GEMELDET' or net.status.name() == 'BERGUNG_BEVORSTEHEND'}">
+        <div class="card-body bg-light">
+            <h5 class="card-title">Netz nicht gefunden?</h5>
+            <p class="card-text small">Wenn Sie vor Ort waren und das Netz nicht finden konnten, können Sie es hier als "verschollen" melden. Diese Angabe ist nicht anonym.</p>
+            <form th:action="@{/net/lost/{id}(id=${net.id})}" method="post" th:object="${salvager}">
+                <div class="mb-3">
+                    <label for="lostName" class="form-label">Ihr Name</label>
+                    <input type="text" class="form-control" id="lostName" th:field="*{name}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="lostPhone" class="form-label">Ihre Telefonnummer</label>
+                    <input type="text" class="form-control" id="lostPhone" th:field="*{phone}" required>
+                </div>
+                <button type="submit" class="btn btn-outline-danger">Als "Verschollen" melden</button>
+            </form>
+        </div>
+    </div>
+
 
     <hr class="my-4">
     <a href="/" class="btn btn-secondary mt-1 mb-5">Zurück zur Übersichtskarte</a>

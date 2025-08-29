@@ -32,7 +32,7 @@ public class GhostNetService {
 
     /**
      * Speichert eine neue Netz-Meldung.
-     * Eine meldende Person wird nur angehängt, wenn auch ein Name angegeben wurde.
+     * Eine meldende Person wird nur angehängt, wenn ein Name angegeben wurde.
      */
     @Transactional
     public void reportNet(GhostNet net, Person reporter) {
@@ -45,7 +45,7 @@ public class GhostNetService {
 
     /**
      * Weist einem Netz eine Person zur Bergung zu.
-     * Falls die Person (Name + Telefon) noch nicht existiert, wird sie neu angelegt.
+     * Existiert die Person noch nicht, wird sie neu angelegt.
      */
     @Transactional
     public void assignSalvager(Long netId, Person salvagerFromForm) {
@@ -73,6 +73,33 @@ public class GhostNetService {
                 .orElseThrow(() -> new IllegalStateException("Netz mit ID " + netId + " nicht gefunden."));
 
         net.setStatus(Status.GEBORGEN);
+        ghostNetRepository.save(net);
+    }
+
+    
+    @Transactional
+    public void markAsLost(Long netId, Person reporter) {
+        // Sicherstellen, dass die meldende Person gültig ist
+        if (reporter == null || reporter.getName() == null || reporter.getName().isBlank() ||
+                reporter.getPhone() == null || reporter.getPhone().isBlank()) {
+            throw new IllegalArgumentException("Name und Telefonnummer sind für diese Meldung erforderlich.");
+        }
+
+        // Prüfen, ob die Person schon existiert, sonst neu anlegen.
+        Person managedReporter = personRepository
+                .findByNameAndPhone(reporter.getName(), reporter.getPhone())
+                .orElseGet(() -> personRepository.save(reporter));
+
+        // Das zugehörige Netz laden.
+        GhostNet net = ghostNetRepository.findById(netId)
+                .orElseThrow(() -> new IllegalStateException("Netz mit ID " + netId + " nicht gefunden."));
+
+        // Status auf VERSCHOLLEN setzen.
+        // Hinweis: Wir überschreiben hier ggf. die "salvagingPerson", um festzuhalten,
+        // wer die letzte Aktion (die Meldung als verschollen) durchgeführt hat.
+        net.setStatus(Status.VERSCHOLLEN);
+        net.setSalvagingPerson(managedReporter); // Speichert, wer die Meldung gemacht hat.
+
         ghostNetRepository.save(net);
     }
 }
