@@ -21,7 +21,8 @@ public class GhostNetController {
 
     @GetMapping("/")
     public String viewHomePage(Model model) {
-        model.addAttribute("nets", ghostNetService.findAllUnrecoveredNets());
+        // Jetzt werden alle Netze an die Homepage/Karte übergeben
+        model.addAttribute("nets", ghostNetService.findAllNets());
         return "index";
     }
 

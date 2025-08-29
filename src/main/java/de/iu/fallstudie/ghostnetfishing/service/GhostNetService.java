@@ -20,10 +20,12 @@ public class GhostNetService {
     private final PersonRepository personRepository;
 
     /**
-     * Holt alle Netze, die noch nicht geborgen wurden (Status GEMELDET oder BERGUNG_BEVORSTEHEND).
+     * Ruft ALLE Netze für die Darstellung auf der Karte ab.
+     * @return eine Liste aller GhostNet-Objekte.
      */
-    public List<GhostNet> findAllUnrecoveredNets() {
-        return ghostNetRepository.findByStatusIn(List.of(Status.GEMELDET, Status.BERGUNG_BEVORSTEHEND));
+    public List<GhostNet> findAllNets() {
+        // Wir holen jetzt alle Netze, nicht nur die ungeborgenen
+        return ghostNetRepository.findAll();
     }
 
     public Optional<GhostNet> findById(Long id) {
@@ -76,7 +78,12 @@ public class GhostNetService {
         ghostNetRepository.save(net);
     }
 
-    
+    /**
+     * Markiert ein Netz als VERSCHOLLEN.
+     * Eine Person muss angegeben werden, da dies nicht anonym geschehen kann.
+     * @param netId die ID des Netzes.
+     * @param reporter die Person, die das Netz als verschollen meldet.
+     */
     @Transactional
     public void markAsLost(Long netId, Person reporter) {
         // Sicherstellen, dass die meldende Person gültig ist
@@ -95,8 +102,6 @@ public class GhostNetService {
                 .orElseThrow(() -> new IllegalStateException("Netz mit ID " + netId + " nicht gefunden."));
 
         // Status auf VERSCHOLLEN setzen.
-        // Hinweis: Wir überschreiben hier ggf. die "salvagingPerson", um festzuhalten,
-        // wer die letzte Aktion (die Meldung als verschollen) durchgeführt hat.
         net.setStatus(Status.VERSCHOLLEN);
         net.setSalvagingPerson(managedReporter); // Speichert, wer die Meldung gemacht hat.
 

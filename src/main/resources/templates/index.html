@@ -60,22 +60,32 @@
     /*<![CDATA[*/
     const netsData = /*[[${nets}]]*/ [];
     /*]]>*/
-    // console.log("Geladene Netze:", netsData); // Kleiner Debug-Helfer, falls was schiefgeht
-
 
     // --- Marker für jedes Netz hinzufügen ---
     netsData.forEach(net => {
         // Farbe je nach Status festlegen
         let color;
-        if (net.status === 'GEMELDET') {
-            color = 'red';
-        } else {
-            color = 'orange'; // für BERGUNG_BEVORSTEHEND
+        switch (net.status) {
+            case 'GEMELDET':
+                color = 'red';
+                break;
+            case 'BERGUNG_BEVORSTEHEND':
+                color = 'orange';
+                break;
+            case 'GEBORGEN':
+                color = 'green';
+                break;
+            case 'VERSCHOLLEN':
+                color = 'grey';
+                break;
+            default:
+                color = 'black'; // Fallback
         }
 
         const marker = L.circleMarker([net.latitude, net.longitude], {
             color: color,
-            radius: 8
+            radius: 8,
+            fillOpacity: 0.7
         }).addTo(map);
 
         // Popup-Inhalt zusammenbauen
