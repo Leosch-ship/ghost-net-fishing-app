@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Details für Netz #' + ${net.id}">Netz Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Ghost Net Fishing</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+
+    <h2 th:text="'Details für Geisternetz #' + ${net.id}">Details zum Geisternetz</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="card-text"><strong>Koordinaten:</strong> <span th:text="${net.latitude} + ', ' + ${net.longitude}"></span></p>
+            <p class="card-text"><strong>Geschätzte Größe:</strong> <span th:text="${net.estimatedSize}"></span></p>
+            <p class="card-text">
+                <strong>Status:</strong>
+                <span class="badge"
+                      th:classappend="${net.status.name() == 'GEMELDET'} ? 'bg-danger' : (${net.status.name() == 'BERGUNG_BEVORSTEHEND'} ? 'bg-warning text-dark' : 'bg-success')"
+                      th:text="${net.status.name().replace('_', ' ')}">
+                </span>
+            </p>
+
+            <div th:if="${net.reportingPerson != null and net.reportingPerson.name != null and !net.reportingPerson.name.isBlank()}">
+                <hr>
+                <p class="card-text text-muted small">
+                    Gemeldet von: <span th:text="${net.reportingPerson.name}"></span>
+                    <span th:if="${net.reportingPerson.phone != null and !net.reportingPerson.phone.isBlank()}" th:text="'(' + ${net.reportingPerson.phone} + ')'"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${net.status.name() == 'GEMELDET'}">
+        <h4>Bergung beauftragen</h4>
+        <p>Sie möchten dieses Netz bergen? Tragen Sie hier Ihre Daten ein, um die Bergung zu übernehmen.</p>
+        <form th:action="@{/net/assign/{id}(id=${net.id})}" method="post" th:object="${salvager}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Ihr Name</label>
+                <input type="text" class="form-control" id="name" th:field="*{name}" required>
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Ihre Telefonnummer (für Rückfragen)</label>
+                <input type="text" class="form-control" id="phone" th:field="*{phone}" required>
+            </div>
+            <button type="submit" class="btn btn-success">Ich übernehme die Bergung</button>
+        </form>
+    </div>
+
+    <div th:if="${net.status.name() == 'BERGUNG_BEVORSTEHEND'}">
+        <h4>Information zur Bergung</h4>
+        <div class="alert alert-info">
+            <p class="mb-1"><strong>Bergung wird durchgeführt von:</strong> <span th:text="${net.salvagingPerson.name}"></span></p>
+            <p class="mb-0"><strong>Kontakt:</strong> <span th:text="${net.salvagingPerson.phone}"></span></p>
+        </div>
+        <p>Wenn Sie die Bergung abgeschlossen haben, markieren Sie das Netz bitte hier als geborgen.</p>
+        <form th:action="@{/net/recover/{id}(id=${net.id})}" method="post">
+            <button type="submit" class="btn btn-primary">Als "Geborgen" markieren</button>
+        </form>
+    </div>
+
+    <div th:if="${net.status.name() == 'GEBORGEN'}">
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Erfolgreich geborgen!</h4>
+            <p>Dieses Netz wurde bereits aus dem Wasser entfernt. Vielen Dank für die Hilfe!</p>
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <a href="/" class="btn btn-secondary mt-1 mb-5">Zurück zur Übersichtskarte</a>
+</div>
+
+</body>
+</html>
